@@ -25,14 +25,19 @@ enum PhotoServiceError: Error, LocalizedError {
 }
 
 struct PhotoService {
-    static let baseURL = "https://picsum.photos/v2/list"
+    let session: URLSession
+    private let baseURL = "https://picsum.photos/v2/list"
     
-    static func fetchPhotos() async throws -> [Photo] {
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+    
+    func fetchPhotos() async throws -> [Photo] {
         guard let url = URL(string: baseURL) else {
             throw PhotoServiceError.invalidURL
         }
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await session.data(from: url)
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 throw PhotoServiceError.badResponse
             }
