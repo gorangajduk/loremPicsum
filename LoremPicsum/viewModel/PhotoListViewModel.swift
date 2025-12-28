@@ -1,22 +1,28 @@
 import Foundation
 import SwiftUI
-import Combine
 
+@MainActor
 @Observable
 class PhotoListViewModel {
+
     enum State {
-        case idle, loading, success([Photo]), failure(Error)
+        case idle
+        case loading
+        case success([Photo])
+        case failure(Error)
     }
 
-    @MainActor @Published var state: State = .idle
+    var state: State = .idle
+
     private let service: PhotoService
 
-    init(service: PhotoService = .init()) {
-        self.service = service
-        Task { await fetchPhotos() }
+    init(service: PhotoService? = nil) {
+        self.service = service ?? PhotoService()
+        Task {
+            await fetchPhotos()
+        }
     }
-    
-    @MainActor
+
     func fetchPhotos() async {
         state = .loading
         do {
