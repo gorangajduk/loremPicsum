@@ -43,6 +43,9 @@ struct PhotoListView: View {
                         }
                         .padding(16)
                     }
+                    .refreshable {
+                        await viewModel.fetchPhotos()
+                    }
                 }
             }
             .navigationTitle("Photos")

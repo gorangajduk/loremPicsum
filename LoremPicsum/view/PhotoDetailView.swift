@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct PhotoDetailView: View {
     let photo: Photo
@@ -13,20 +14,14 @@ struct PhotoDetailView: View {
                     .fontWeight(.bold)
                     .padding(.horizontal)
                 
-                AsyncImage(url: URL(string: photo.download_url)) { phase in
-                    if let image = phase.image {
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity)
-                    } else if phase.error != nil {
-                        Color.red.overlay(Text("✗").font(.largeTitle))
-                            .frame(height: 240)
-                    } else {
+                KFImage(URL(string: photo.download_url))
+                    .placeholder {
                         ProgressView()
                             .frame(height: 240)
                     }
-                }
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity)
                 .background(Color(white: 0.95))
                 .frame(maxWidth: .infinity, maxHeight: 320)
                 

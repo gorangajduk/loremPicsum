@@ -6,25 +6,18 @@
 //
 
 import SwiftUI
-import Foundation
+import Kingfisher
 
 struct PhotoGridCell: View {
     let photo: Photo
 
     var body: some View {
-        AsyncImage(url: URL(string: photo.download_url)) { phase in
-            if let image = phase.image {
-                image
-                    .resizable()
-                    .scaledToFit()
-            } else if phase.error != nil {
-                Color.red.overlay(Text("✗"))
-            } else {
+        KFImage(URL(string: photo.download_url))
+            .placeholder {
                 ProgressView()
             }
-        }
-        .frame(height: 150)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .clipped()
+            .resizable()
+            .scaledToFit()
+            .frame(height: 150)
     }
 }
