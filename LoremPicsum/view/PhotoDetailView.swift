@@ -7,8 +7,6 @@ struct PhotoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                
-                // Title below back button
                 Text("Photo Details")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -19,11 +17,14 @@ struct PhotoDetailView: View {
                         ProgressView()
                             .frame(height: 240)
                     }
+                    .onFailureView {
+                        ImageFailureView(iconSize: 50, message: "Failed to load image")
+                    }
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                .background(Color(white: 0.95))
-                .frame(maxWidth: .infinity, maxHeight: 320)
+                    .background(Color(white: 0.95))
+                    .frame(maxWidth: .infinity, maxHeight: 320)
                 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Author: \(photo.author)").bold()
