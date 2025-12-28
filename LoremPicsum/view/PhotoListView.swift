@@ -1,10 +1,14 @@
 import SwiftUI
-import Combine
 import Foundation
 
 struct PhotoListView: View {
     @State private var viewModel = PhotoListViewModel()
-    
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16)
+    ]
+
     var body: some View {
         NavigationStack {
             Group {
@@ -12,35 +16,33 @@ struct PhotoListView: View {
                 case .idle, .loading:
                     ProgressView("Loading Photos...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
                 case .failure(let error):
                     VStack(spacing: 16) {
                         Text("Failed to load photos.")
-                        Text(error.localizedDescription).font(.caption).foregroundStyle(.secondary)
+                        Text(error.localizedDescription)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         Button("Retry") {
                             Task { await viewModel.fetchPhotos() }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
                 case .success(let photos):
-                    List(photos) { photo in
-                        HStack(spacing: 16) {
-                            AsyncImage(url: URL(string: photo.download_url)) { phase in
-                                if let image = phase.image {
-                                    image.resizable().aspectRatio(contentMode: .fill)
-                                } else if phase.error != nil {
-                                    Color.red.overlay(Text("✗").font(.caption))
-                                } else {
-                                    ProgressView()
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(photos) { photo in
+                                NavigationLink {
+                                    PhotoDetailView(photo: photo)
+                                } label: {
+                                    PhotoGridCell(photo: photo)
                                 }
+                                .buttonStyle(.plain) 
                             }
-                            .frame(width: 64, height: 64)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                            Text(photo.author)
-                                .font(.headline)
                         }
+                        .padding(16)
                     }
-                    .listStyle(.plain)
                 }
             }
             .navigationTitle("Photos")

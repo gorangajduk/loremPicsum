@@ -1,4 +1,3 @@
-// Create a SwiftUI view for showing details of a selected Photo
 import SwiftUI
 
 struct PhotoDetailView: View {
@@ -7,13 +6,19 @@ struct PhotoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                
+                // Title below back button
+                Text("Photo Details")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.horizontal)
+                
                 AsyncImage(url: URL(string: photo.download_url)) { phase in
                     if let image = phase.image {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(maxWidth: .infinity)
-                            .cornerRadius(16)
                     } else if phase.error != nil {
                         Color.red.overlay(Text("✗").font(.largeTitle))
                             .frame(height: 240)
@@ -38,8 +43,6 @@ struct PhotoDetailView: View {
                 .font(.body)
                 .padding(.horizontal)
             }
-            .navigationTitle("Photo Details")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
