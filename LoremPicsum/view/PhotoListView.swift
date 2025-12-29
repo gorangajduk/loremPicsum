@@ -3,12 +3,12 @@ import Foundation
 
 struct PhotoListView: View {
     @State private var viewModel = PhotoListViewModel()
-
+    
     private let columns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16)
     ]
-
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -32,18 +32,28 @@ struct PhotoListView: View {
                 case .success(let photos):
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 16) {
-                            ForEach(photos) { photo in
+                            ForEach(Array(photos.enumerated()), id: \.element.id) { index, photo in
                                 NavigationLink {
                                     PhotoDetailView(photo: photo)
                                 } label: {
                                     PhotoGridCell(photo: photo)
+                                        .onAppear {
+                                            // Trigger pagination when user scrolls near the end
+                                            // Load more when reaching the last 5 items
+                                            if index == photos.count - 5 {
+                                                Task {
+                                                    await viewModel.loadMorePhotos()
+                                                }
+                                            }
+                                        }
                                 }
-                                .buttonStyle(.plain) 
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding(16)
                     }
                     .refreshable {
+                        // Pull-to-refresh resets to first page
                         await viewModel.fetchPhotos()
                     }
                 }

@@ -1,5 +1,5 @@
-// Create a new Swift file named PhotoService.swift
-// This file will define a PhotoService responsible for fetching photos from the Lorem Picsum API using async/await
+// PhotoService.swift
+// This file defines a PhotoService responsible for fetching photos from the Lorem Picsum API using async/await
 // Include error handling for network and decoding errors
 
 import Foundation
@@ -7,7 +7,7 @@ import Foundation
 enum PhotoServiceError: Error, LocalizedError {
     case invalidURL
     case network(Error)
-    case badResponse
+    case badResponse(statusCode: Int)
     case decoding(Error)
     
     var errorDescription: String? {
@@ -16,8 +16,8 @@ enum PhotoServiceError: Error, LocalizedError {
             return "The URL provided was invalid."
         case .network(let error):
             return "Network error: \(error.localizedDescription)"
-        case .badResponse:
-            return "The server returned an invalid response."
+        case .badResponse(let statusCode):
+            return "The server returned an invalid response (status code: \(statusCode))."
         case .decoding(let error):
             return "Failed to decode response: \(error.localizedDescription)"
         }
@@ -25,27 +25,48 @@ enum PhotoServiceError: Error, LocalizedError {
 }
 
 struct PhotoService {
-    let session: URLSession
+    private let session: URLSession
     private let baseURL = "https://picsum.photos/v2/list"
     
     init(session: URLSession = .shared) {
         self.session = session
     }
     
-    func fetchPhotos() async throws -> [Photo] {
-        guard let url = URL(string: baseURL) else {
+    func fetchPhotos(page: Int = 1, limit: Int = 30) async throws -> [Photo] {
+        guard var urlComponents = URLComponents(string: baseURL) else {
             throw PhotoServiceError.invalidURL
         }
+        
+        // Add query parameters for pagination
+        urlComponents.queryItems = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "limit", value: String(limit))
+        ]
+        
+        guard let url = urlComponents.url else {
+            throw PhotoServiceError.invalidURL
+        }
+        
         do {
             let (data, response) = try await session.data(from: url)
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                throw PhotoServiceError.badResponse
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw PhotoServiceError.badResponse(statusCode: 0)
             }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw PhotoServiceError.badResponse(statusCode: httpResponse.statusCode)
+            }
+            
+            let decoder = JSONDecoder()
+            
             do {
-                return try JSONDecoder().decode([Photo].self, from: data)
+                return try decoder.decode([Photo].self, from: data)
             } catch {
                 throw PhotoServiceError.decoding(error)
             }
+        } catch let error as PhotoServiceError {
+            throw error
         } catch {
             throw PhotoServiceError.network(error)
         }
