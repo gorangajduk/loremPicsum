@@ -12,7 +12,7 @@ class PhotoListViewModel {
     }
     
     var state: State = .idle
-    private let service: PhotoService
+    private let service: PhotoServiceProtocol
     
     // Pagination state
     private var currentPage = 1
@@ -20,7 +20,7 @@ class PhotoListViewModel {
     private var isLoadingMore = false
     private var hasMorePages = true
     
-    init(service: PhotoService? = nil) {
+    init(service: PhotoServiceProtocol? = nil) {
         self.service = service ?? PhotoService()
         Task {
             await fetchPhotos()

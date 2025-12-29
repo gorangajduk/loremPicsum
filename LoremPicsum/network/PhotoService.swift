@@ -4,6 +4,12 @@
 
 import Foundation
 
+
+/// Protocol defining the interface for fetching photos
+protocol PhotoServiceProtocol {
+    func fetchPhotos(page: Int, limit: Int) async throws -> [Photo]
+}
+
 enum PhotoServiceError: Error, LocalizedError {
     case invalidURL
     case network(Error)
@@ -24,7 +30,7 @@ enum PhotoServiceError: Error, LocalizedError {
     }
 }
 
-struct PhotoService {
+struct PhotoService: PhotoServiceProtocol {
     private let session: URLSession
     private let baseURL = "https://picsum.photos/v2/list"
     
